@@ -3,6 +3,7 @@ namespace TuringSmartScreenLib;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Reflection;
 using System.Text;
@@ -229,12 +230,17 @@ public sealed unsafe class TuringSmartScreenRevisionE : IDisposable
         if ((x == 0) && (y == 0) && (width == Width) && (height == Height))
         {
             DisplayFullBitmap(bitmap);
+            count = 0;
+            CanDisplayPartialBitmap = true;
         }
         else
         {
             DisplayPartialBitmap(x, y, bitmap, width, height, count);
             count++;
         }
+
+        port.DiscardInBuffer();
+        port.DiscardOutBuffer();
     }
 
     private void DisplayFullBitmap(byte[] bitmap)
@@ -268,7 +274,7 @@ public sealed unsafe class TuringSmartScreenRevisionE : IDisposable
         Flush();
     }
 
-    public bool CanDisplayPartialBitmap { get => !field; private set; }
+    public bool CanDisplayPartialBitmap { get => field; private set; }
 
     private void DisplayPartialBitmap(int x, int y, byte[] bitmap, int width, int height, int count)
     {
